@@ -1,20 +1,8 @@
-import {
-    createConsulta,
-    deleteConsulta,
-    getConsultas,
-    getPacientes,
-    updateConsulta,
-} from '@/database';
+import { createConsulta, deleteConsulta, getConsultas, getPacientes, updateConsulta, } from '@/database';
 import { Consulta, Paciente } from '@/types';
-import { useEffect, useState } from 'react';
-import {
-    FlatList,
-    Modal,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Modal, Text, TextInput, TouchableOpacity, View, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TabTwoScreen() {
@@ -27,9 +15,8 @@ export default function TabTwoScreen() {
 
   const [modalPacientes, setModalPacientes] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
-  const [consultaEditando, setConsultaEditando] = useState<Consulta | null>(
-    null
-  );
+  const [consultaEditando, setConsultaEditando] =
+    useState<Consulta | null>(null);
 
   function formatarData(text: string) {
     return text
@@ -41,7 +28,7 @@ export default function TabTwoScreen() {
 
   function verificar() {
     if (!pacienteSelecionado || !data || !descricao) {
-      alert('Verifique o formulário.');
+      Alert.alert('Atenção', 'Verifique o formulário.');
       return;
     }
 
@@ -66,14 +53,28 @@ export default function TabTwoScreen() {
       descricao: consultaEditando.descricao,
     });
 
+    fecharModalEdicao();
     setConsultas(getConsultas());
-    setConsultaEditando(null);
-    setModalEditar(false);
   }
 
-  useEffect(() => {
+  function fecharModalEdicao() {
+    setModalEditar(false);
+    setConsultaEditando(null);
+  }
+
+  const carregarConsultas = () => {
     setConsultas(getConsultas());
     setPacientes(getPacientes());
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarConsultas();
+    }, [])
+  );
+
+  useEffect(() => {
+    carregarConsultas();
   }, []);
 
   const renderConsulta = ({ item }: { item: Consulta }) => (
@@ -94,19 +95,30 @@ export default function TabTwoScreen() {
         {item.paciente_nome}
       </Text>
 
-      <Text style={{ color: '#555', marginTop: 4 }}>
-        📅 {item.data}
-      </Text>
+      <Text style={{ color: '#555', marginTop: 4 }}>📅 {item.data}</Text>
 
       <Text style={{ color: '#666', marginTop: 6 }}>
         {item.descricao}
       </Text>
 
       <TouchableOpacity
-        onPress={() => {
-          deleteConsulta(item.id!);
-          setConsultas(getConsultas());
-        }}
+        onPress={() =>
+          Alert.alert(
+            'Excluir consulta',
+            'Tem certeza que deseja excluir esta consulta?',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              {
+                text: 'Excluir',
+                style: 'destructive',
+                onPress: () => {
+                  deleteConsulta(item.id!);
+                  setConsultas(getConsultas());
+                },
+              },
+            ]
+          )
+        }
         style={{ alignSelf: 'flex-end', marginTop: 10 }}
       >
         <Text style={{ color: '#E53935', fontWeight: '600' }}>
@@ -202,9 +214,25 @@ export default function TabTwoScreen() {
 
         {/* MODAL PACIENTES */}
         <Modal visible={modalPacientes} transparent animationType="slide">
-          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <View style={{ backgroundColor: '#fff', margin: 20, borderRadius: 16, padding: 20 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700' }}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: '#fff',
+                margin: 20,
+                borderRadius: 16,
+                padding: 20,
+                maxHeight: '80%',
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: '700', marginBottom: 10 }}
+              >
                 Selecione um paciente
               </Text>
 
@@ -223,15 +251,49 @@ export default function TabTwoScreen() {
                   </TouchableOpacity>
                 )}
               />
+
+              <TouchableOpacity
+                onPress={() => setModalPacientes(false)}
+                style={{
+                  marginTop: 15,
+                  padding: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: '#E0E0E0',
+                }}
+              >
+                <Text style={{ fontWeight: '600' }}>Cancelar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
 
         {/* MODAL EDITAR CONSULTA */}
-        <Modal visible={modalEditar} transparent animationType="slide">
-          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <View style={{ backgroundColor: '#fff', margin: 20, borderRadius: 16, padding: 20 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 10 }}>
+        <Modal
+          visible={modalEditar}
+          transparent
+          animationType="slide"
+          onRequestClose={fecharModalEdicao}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: '#fff',
+                margin: 20,
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: '700', marginBottom: 10 }}
+              >
                 Editar Consulta
               </Text>
 
@@ -282,6 +344,17 @@ export default function TabTwoScreen() {
                 <Text style={{ color: '#fff', fontWeight: '600' }}>
                   Salvar Alterações
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={fecharModalEdicao}
+                style={{
+                  marginTop: 10,
+                  padding: 12,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontWeight: '600' }}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
