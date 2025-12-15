@@ -149,7 +149,7 @@ export default function PacientesScreen() {
           Pacientes
         </Text>
 
-        {/* CARD CADASTRO */}
+        {/* FORMULÁRIO */}
         <View
           style={{
             backgroundColor: '#fff',

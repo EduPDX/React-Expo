@@ -269,7 +269,7 @@ export default function TabTwoScreen() {
           </View>
         </Modal>
 
-        {/* MODAL EDITAR CONSULTA */}
+        {/* MODAL EDITAR*/}
         <Modal
           visible={modalEditar}
           transparent
